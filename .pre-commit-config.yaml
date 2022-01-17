@@ -13,7 +13,7 @@ repos:
     hooks:
       - id: python-check-blanket-noqa
   - repo: https://github.com/Zac-HD/shed
-    rev: 0.7.0
+    rev: 0.8.0
     hooks:
       - id: shed
         args: [--refactor, --py310-plus]
