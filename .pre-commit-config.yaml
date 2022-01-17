@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.9.0
+    hooks:
+      - id: python-check-blanket-noqa
+  - repo: https://github.com/Zac-HD/shed
+    rev: 0.7.0
+    hooks:
+      - id: shed
+        args: [--refactor, --py310-plus]
+        types_or: [python, markdown, rst]
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: pyright
+        language: node
+        pass_filenames: false
+        types: [python]
+        additional_dependencies: ["pyright@1.1.206"]
+  - repo: local
+    hooks:
+      - id: flake8
+        name: Flake8
+        description: This hook runs flake8 within our project's poetry environment.
+        entry: poetry run flake8
+        language: system
+        types: [python]
+        require_serial: true

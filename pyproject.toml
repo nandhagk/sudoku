@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "starter"
+version = "0.1.0"
+description = "A Starter Project"
+license = "MIT"
+authors = ["nandhagk <nandhagopi@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.0"
+flake8-annotations = "^2.7.0"
+flake8-bugbear = "^22.0.0"
+flake8-docstrings = "^1.6.0"
+flake8-isort = "^4.1.1"
+flake8-string-format = "^0.3.0"
+flake8-tidy-imports = "^4.5.0"
+flake8-todo = "^0.7"
+pep8-naming = "^0.12.0"
+pre-commit = "^2.15.0"
+shed = "^0.7.0"
+taskipy = "^1.9.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+lint = "pre-commit run --all-files"
+start = "python -m starter"
+precommit = "pre-commit install"
+
+[tool.isort]
+profile = "black"
+case_sensitive = true
+
+[tool.pyright]
+include = ["starter"]
