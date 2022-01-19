@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 from collections.abc import Iterable, Iterator
+from copy import deepcopy
 from enum import Enum, auto
 from functools import partial
 from pathlib import Path
@@ -76,6 +77,7 @@ OTHER_LIGHT_BLUE = "#C3D7EA"
 
 RED = "#E55C6C"
 LIGHT_RED = "#F7CFD6"
+ACTIVE_RED = "#CE5361"
 
 CLEAR_KEYS = frozenset(["BackSpace", "Delete"])
 UP_KEYS = frozenset(["Up", "w"])
@@ -119,16 +121,6 @@ class Cell:
         """The coordinates of the cell."""
         return (self.row, self.col)
 
-    def clone(self) -> Cell:
-        """Creates a clone of the cell."""
-        return Cell(
-            row=self.row,
-            col=self.col,
-            value=self.value,
-            is_fixed=self.is_fixed,
-            candidates=self.candidates,
-        )
-
     def set_value(self, value: CellValue | None) -> None:
         """Sets the value of the cell."""
         assert not self.is_fixed
@@ -164,7 +156,7 @@ class Cell:
 class Grid:
     def __init__(self, cells: list[Cell]) -> None:
         assert len(cells) == 81
-        assert all(cell.coords == (i // 9, i % 9) for i, cell in enumerate(cells))
+        assert all([cell.coords == (i // 9, i % 9) for i, cell in enumerate(cells)])
 
         self._cells = cells
 
@@ -295,7 +287,7 @@ class Board(Canvas):
         if self.selected_cell.is_fixed or self.is_completed:
             return
 
-        self.history.append(self.selected_cell.clone())
+        self.history.append(deepcopy(self.selected_cell))
         self.selected_cell.set_value(value)
 
         self.draw()
@@ -305,7 +297,7 @@ class Board(Canvas):
         if self.selected_cell.is_fixed or self.is_completed:
             return
 
-        self.history.append(self.selected_cell.clone())
+        self.history.append(deepcopy(self.selected_cell))
         self.selected_cell.toggle_candidate(candidate)
 
         self.draw()
@@ -606,6 +598,7 @@ class App(Frame):
         self.start(Difficulty.MEDIUM)
 
     def start(self, difficulty: Difficulty | None = None) -> None:
+        """Stars a new game with a given difficulty."""
         if difficulty is None:
             dialog = NewGameDialog(self.master)  # type: ignore
             difficulty = dialog.difficulty
@@ -613,16 +606,17 @@ class App(Frame):
         if difficulty is None:
             return
 
-        title = f"Sudoku - {DIFFICULTY_NAME_MAPPING[difficulty]}"
+        title = f"Sudoku ({DIFFICULTY_NAME_MAPPING[difficulty]})"
         self.master.title(title)  # type: ignore
 
         self.board.start(difficulty)
 
     def toggle_notes_entry_mode(self) -> None:
+        """Toggles the notes entry mode."""
         self.is_notes_entry_mode = not self.is_notes_entry_mode
 
         colour = RED if self.is_notes_entry_mode else BLUE
-        active_colour = RED if self.is_notes_entry_mode else ACTIVE_BLUE
+        active_colour = ACTIVE_RED if self.is_notes_entry_mode else ACTIVE_BLUE
 
         self.control_menu.notes_button.configure(
             background=colour,
@@ -659,6 +653,7 @@ class App(Frame):
 root = Tk()
 
 root.configure(background=WHITE)
+root.resizable(False, False)
 root.geometry(f"{WIDTH + 2 * PADDING + 360}x{HEIGHT + 2 * PADDING}")
 
 App(root)
