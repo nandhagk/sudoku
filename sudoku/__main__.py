@@ -670,7 +670,7 @@ class App(Frame):
 root = Tk()
 
 root.configure(background=WHITE)
-# root.resizable(False, False)
+root.resizable(False, False)
 root.geometry(f"{WIDTH + 2 * PADDING + 360}x{HEIGHT + 2 * PADDING}")
 
 App(root)
