@@ -502,11 +502,11 @@ class ControlMenu(Frame):
         self.erase_button = IconButton(self, icon="erase")
         self.erase_button.grid(column=1, row=1, sticky=NSEW, padx=(0, PADDING))
 
-        self.hint_button = IconButton(self, icon="hint")
-        self.hint_button.grid(column=2, row=1, sticky=NSEW, padx=(0, PADDING))
-
         self.notes_button = IconButton(self, icon="notes")
-        self.notes_button.grid(column=3, row=1, sticky=NSEW)
+        self.notes_button.grid(column=2, row=1, sticky=NSEW, padx=(0, PADDING))
+
+        self.hint_button = IconButton(self, icon="hint")
+        self.hint_button.grid(column=3, row=1, sticky=NSEW)
 
 
 class NumberPad(Frame):
