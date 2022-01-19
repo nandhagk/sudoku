@@ -464,17 +464,12 @@ class BlueWhiteButton(Button):
         )
 
 
-class IconButton(Button):
-    def __init__(self, master: Misc, icon: str) -> None:
-        super().__init__(
-            master,
-            height=64,
-            background=WHITE_BLUE,
-            activebackground=ACTIVE_WHITE_BLUE,
-        )
+class IconButton(WhiteBlueButton):
+    def __init__(self, master: Misc, text: str, icon: str) -> None:
+        super().__init__(master, text=text, font_size=10)
 
         self.icon = PhotoImage(file=(ICON_PATH / icon).with_suffix(".png"))
-        self.configure(image=self.icon)
+        self.configure(image=self.icon, compound=TOP, height=64)
 
 
 class ControlMenu(Frame):
@@ -496,16 +491,16 @@ class ControlMenu(Frame):
             pady=(0, PADDING),
         )
 
-        self.undo_button = IconButton(self, icon="undo")
+        self.undo_button = IconButton(self, text="Undo", icon="undo")
         self.undo_button.grid(row=1, column=0, sticky=NSEW, padx=(0, PADDING))
 
-        self.erase_button = IconButton(self, icon="erase")
+        self.erase_button = IconButton(self, text="Erase", icon="erase")
         self.erase_button.grid(column=1, row=1, sticky=NSEW, padx=(0, PADDING))
 
-        self.notes_button = IconButton(self, icon="notes")
+        self.notes_button = IconButton(self, text="Notes", icon="notes")
         self.notes_button.grid(column=2, row=1, sticky=NSEW, padx=(0, PADDING))
 
-        self.hint_button = IconButton(self, icon="hint")
+        self.hint_button = IconButton(self, text="Hint", icon="hint")
         self.hint_button.grid(column=3, row=1, sticky=NSEW)
 
 
