@@ -636,8 +636,7 @@ class App(Frame):
         )
 
     def update_board(self, value: CellValue | None) -> None:
-        if self.is_notes_entry_mode:
-            assert value is not None
+        if self.is_notes_entry_mode and value is not None:
             self.board.toggle_candidate(value)
         else:
             self.board.set_value(value)
