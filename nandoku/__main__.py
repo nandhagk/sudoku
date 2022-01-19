@@ -11,16 +11,16 @@ from tkinter import (
     BOTH,
     BOTTOM,
     LEFT,
+    NSEW,
     TOP,
     Button,
     Canvas,
-    E,
     Event,
     Frame,
     Misc,
+    PhotoImage,
     Tk,
     Toplevel,
-    W,
     X,
 )
 from typing import Literal
@@ -77,7 +77,7 @@ OTHER_LIGHT_BLUE = "#C3D7EA"
 
 RED = "#E55C6C"
 LIGHT_RED = "#F7CFD6"
-ACTIVE_RED = "#CE5361"
+ACTIVE_LIGHT_RED = "#FABEC9"
 
 CLEAR_KEYS = frozenset(["BackSpace", "Delete"])
 UP_KEYS = frozenset(["Up", "w"])
@@ -86,6 +86,8 @@ DOWN_KEYS = frozenset(["Down", "s"])
 RIGHT_KEYS = frozenset(["Right", "d"])
 
 DATA_PATH = Path(__file__).parent.parent / "data"
+ICON_PATH = Path(__file__).parent.parent / "assets" / "icons"
+
 
 CellValue = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -462,6 +464,19 @@ class BlueWhiteButton(Button):
         )
 
 
+class IconButton(Button):
+    def __init__(self, master: Misc, icon: str) -> None:
+        super().__init__(
+            master,
+            height=64,
+            background=WHITE_BLUE,
+            activebackground=ACTIVE_WHITE_BLUE,
+        )
+
+        self.icon = PhotoImage(file=(ICON_PATH / icon).with_suffix(".png"))
+        self.configure(image=self.icon)
+
+
 class ControlMenu(Frame):
     def __init__(self, master: Misc) -> None:
         super().__init__(master, background=WHITE)
@@ -477,21 +492,21 @@ class ControlMenu(Frame):
             row=0,
             column=0,
             columnspan=4,
-            sticky=W + E,
+            sticky=NSEW,
             pady=(0, PADDING),
         )
 
-        self.undo_button = BlueWhiteButton(self, text="U", font_size=16)
-        self.undo_button.grid(row=1, column=0, sticky=W + E, padx=(0, PADDING))
+        self.undo_button = IconButton(self, icon="undo")
+        self.undo_button.grid(row=1, column=0, sticky=NSEW, padx=(0, PADDING))
 
-        self.clear_button = BlueWhiteButton(self, text="C", font_size=16)
-        self.clear_button.grid(column=1, row=1, sticky=W + E, padx=(0, PADDING))
+        self.erase_button = IconButton(self, icon="erase")
+        self.erase_button.grid(column=1, row=1, sticky=NSEW, padx=(0, PADDING))
 
-        self.hint_button = BlueWhiteButton(self, text="H", font_size=16)
-        self.hint_button.grid(column=2, row=1, sticky=W + E, padx=(0, PADDING))
+        self.hint_button = IconButton(self, icon="hint")
+        self.hint_button.grid(column=2, row=1, sticky=NSEW, padx=(0, PADDING))
 
-        self.notes_button = BlueWhiteButton(self, text="N", font_size=16)
-        self.notes_button.grid(column=3, row=1, sticky=W + E)
+        self.notes_button = IconButton(self, icon="notes")
+        self.notes_button.grid(column=3, row=1, sticky=NSEW)
 
 
 class NumberPad(Frame):
@@ -515,7 +530,7 @@ class NumberPad(Frame):
             padx = (PADDING_SMALL if col != 0 else 0, PADDING_SMALL if col != 2 else 0)
             pady = (PADDING_SMALL if row != 0 else 0, PADDING_SMALL if row != 2 else 0)
 
-            button.grid(row=row, column=col, sticky=W + E, padx=padx, pady=pady)
+            button.grid(row=row, column=col, sticky=NSEW, padx=padx, pady=pady)
 
             self.buttons.append(button)
 
@@ -587,8 +602,8 @@ class App(Frame):
         self.control_menu.hint_button.configure(command=self.board.hint)
         self.control_menu.notes_button.configure(command=self.toggle_notes_entry_mode)
 
-        handle_clear_button_pressed = partial(self.update_board, None)
-        self.control_menu.clear_button.configure(command=handle_clear_button_pressed)
+        handle_erase_button_pressed = partial(self.update_board, None)
+        self.control_menu.erase_button.configure(command=handle_erase_button_pressed)
 
         for i, button in enumerate(self.number_pad.buttons, 1):
             handle_button_pressed = partial(self.update_board, i)  # type: ignore
@@ -615,8 +630,10 @@ class App(Frame):
         """Toggles the notes entry mode."""
         self.is_notes_entry_mode = not self.is_notes_entry_mode
 
-        colour = RED if self.is_notes_entry_mode else BLUE
-        active_colour = ACTIVE_RED if self.is_notes_entry_mode else ACTIVE_BLUE
+        colour = LIGHT_RED if self.is_notes_entry_mode else WHITE_BLUE
+        active_colour = (
+            ACTIVE_LIGHT_RED if self.is_notes_entry_mode else ACTIVE_WHITE_BLUE
+        )
 
         self.control_menu.notes_button.configure(
             background=colour,
@@ -653,8 +670,9 @@ class App(Frame):
 root = Tk()
 
 root.configure(background=WHITE)
-root.resizable(False, False)
+# root.resizable(False, False)
 root.geometry(f"{WIDTH + 2 * PADDING + 360}x{HEIGHT + 2 * PADDING}")
 
 App(root)
+
 root.mainloop()
