@@ -16,17 +16,8 @@ repos:
     rev: 0.8.0
     hooks:
       - id: shed
-        args: [--refactor, --py310-plus]
+        args: [--refactor]
         types_or: [python, markdown, rst]
-  - repo: local
-    hooks:
-      - id: pyright
-        name: pyright
-        entry: pyright
-        language: node
-        pass_filenames: false
-        types: [python]
-        additional_dependencies: ["pyright@1.1.210"]
   - repo: local
     hooks:
       - id: flake8

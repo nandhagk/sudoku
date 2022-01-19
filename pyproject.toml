@@ -6,7 +6,7 @@ license = "MIT"
 authors = ["nandhagk <nandhagopi@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.0"
@@ -34,6 +34,3 @@ precommit = "pre-commit install"
 [tool.isort]
 profile = "black"
 case_sensitive = true
-
-[tool.pyright]
-include = ["sudoku"]

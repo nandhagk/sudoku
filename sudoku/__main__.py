@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 import csv
-from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from enum import Enum, auto
 from functools import partial
@@ -15,15 +12,12 @@ from tkinter import (
     TOP,
     Button,
     Canvas,
-    Event,
     Frame,
-    Misc,
     PhotoImage,
     Tk,
     Toplevel,
     X,
 )
-from typing import Literal
 
 
 class Difficulty(Enum):
@@ -34,7 +28,7 @@ class Difficulty(Enum):
     SUPER_HARD = auto()
 
 
-DIFFICULTY_FILE_MAPPING: dict[Difficulty, str] = {
+DIFFICULTY_FILE_MAPPING = {
     Difficulty.SUPER_EASY: "super_easy",
     Difficulty.EASY: "easy",
     Difficulty.MEDIUM: "medium",
@@ -42,7 +36,7 @@ DIFFICULTY_FILE_MAPPING: dict[Difficulty, str] = {
     Difficulty.SUPER_HARD: "super_hard",
 }
 
-DIFFICULTY_NAME_MAPPING: dict[Difficulty, str] = {
+DIFFICULTY_NAME_MAPPING = {
     Difficulty.SUPER_EASY: "Super Easy",
     Difficulty.EASY: "Easy",
     Difficulty.MEDIUM: "Medium",
@@ -89,64 +83,49 @@ DATA_PATH = Path(__file__).parent.parent / "data"
 ICON_PATH = Path(__file__).parent.parent / "assets" / "icons"
 
 
-CellValue = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-
 class Cell:
-    def __init__(
-        self,
-        row: int,
-        col: int,
-        value: CellValue | None,
-        is_fixed: bool,
-        candidates: Iterable[CellValue] | None = None,
-    ) -> None:
-        self.row: int = row
-        self.col: int = col
-        self.value: CellValue | None = value
-        self.is_fixed: bool = is_fixed
+    def __init__(self, row, col, value, is_fixed, candidates=None):
+        self.row = row
+        self.col = col
+        self.value = value
+        self.is_fixed = is_fixed
 
-        self.candidates: set[CellValue]
         if candidates is None:
             self.candidates = set()
         else:
             self.candidates = set(candidates)
 
-    def __eq__(self, other: Cell) -> bool:
+    def __eq__(self, other):
         return self.value == other.value and self.coords == other.coords
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         return hash(self.coords)
 
     @property
-    def coords(self) -> tuple[int, int]:
+    def coords(self):
         """The coordinates of the cell."""
         return (self.row, self.col)
 
-    def set_value(self, value: CellValue | None) -> None:
+    def set_value(self, value):
         """Sets the value of the cell."""
-        assert not self.is_fixed
-
         self.value = value
         self.candidates.clear()
 
-    def toggle_candidate(self, candidate: CellValue) -> None:
+    def toggle_candidate(self, candidate):
         """Toggles a candidate of the cell."""
-        assert not self.is_fixed
-
         self.value = None
         if candidate in self.candidates:
             self.candidates.remove(candidate)
         else:
             self.candidates.add(candidate)
 
-    def is_sharing_subgrid(self, other: Cell) -> bool:
+    def is_sharing_subgrid(self, other):
         """Checks whether the two cells are sharing a subgrid."""
         return self != other and (
             self.row // 3 == other.row // 3 and self.col // 3 == other.col // 3
         )
 
-    def is_neighbour(self, other: Cell) -> bool:
+    def is_neighbour(self, other):
         """Checks whether the two cells are sharing a row, column or subgrid."""
         return self != other and (
             self.row == other.row
@@ -156,30 +135,25 @@ class Cell:
 
 
 class Grid:
-    def __init__(self, cells: list[Cell]) -> None:
-        assert len(cells) == 81
-        assert all([cell.coords == (i // 9, i % 9) for i, cell in enumerate(cells)])
-
+    def __init__(self, cells):
         self._cells = cells
 
-    def __eq__(self, other: Grid) -> bool:
+    def __eq__(self, other):
         return self._cells == other._cells
 
-    def __iter__(self) -> Iterator[Cell]:
+    def __iter__(self):
         return iter(self._cells)
 
-    def __getitem__(self, coords: tuple[int, int]) -> Cell:
+    def __getitem__(self, coords):
         row, col = coords
         return self._cells[row * 9 + col]
 
-    def __setitem__(self, coords: tuple[int, int], cell: Cell) -> None:
-        assert coords == cell.coords
-
+    def __setitem__(self, coords, cell):
         row, col = coords
         self._cells[row * 9 + col] = cell
 
     @property
-    def invalid_cells(self) -> set[Cell]:
+    def invalid_cells(self):
         """
         Cells that are invalid.
 
@@ -199,22 +173,19 @@ class Grid:
         return invalid_cells
 
     @classmethod
-    def from_str(cls, s: str) -> Grid:
+    def from_str(cls, s):
         """Creates a new grid from a string."""
-        cells = [
-            Cell(
-                row=i // 9,
-                col=i % 9,
-                value=value if (value := int(ch)) else None,  # type: ignore
-                is_fixed=bool(value),
-            )
-            for i, ch in enumerate(s)
-        ]
+        cells = []
+
+        for i, ch in enumerate(s):
+            value = int(ch) or None
+            cell = Cell(row=i // 9, col=i % 9, value=value, is_fixed=bool(value))
+            cells.append(cell)
 
         return cls(cells)
 
 
-def get_puzzle_and_solution(difficulty: Difficulty) -> tuple[str, str]:
+def get_puzzle_and_solution(difficulty):
     """Gets a random puzzle and its corresponding solution for a given difficulty."""
     csv_path = (DATA_PATH / DIFFICULTY_FILE_MAPPING[difficulty]).with_suffix(".csv")
     with open(csv_path, newline="") as csv_file:
@@ -225,7 +196,7 @@ def get_puzzle_and_solution(difficulty: Difficulty) -> tuple[str, str]:
 
 
 class Board(Canvas):
-    def __init__(self, master: Misc) -> None:
+    def __init__(self, master):
         super().__init__(
             master,
             width=WIDTH,
@@ -235,9 +206,9 @@ class Board(Canvas):
             highlightthickness=2,
         )
 
-        self.history: list[Cell] = []
+        self.history = []
 
-    def start(self, difficulty: Difficulty) -> None:
+    def start(self, difficulty):
         """Starts a new game with a given difficulty."""
         puzzle, solution = get_puzzle_and_solution(difficulty)
 
@@ -250,11 +221,11 @@ class Board(Canvas):
         self.draw()
 
     @property
-    def is_completed(self) -> bool:
+    def is_completed(self):
         """Checks if the puzzle is completed."""
         return self.grid == self.solution
 
-    def move(self, coords: tuple[int, int]) -> None:
+    def move(self, coords):
         """Moves the selected cell to the given coordinates."""
         if self.is_completed:
             return
@@ -264,27 +235,27 @@ class Board(Canvas):
 
         self.draw()
 
-    def move_up(self) -> None:
+    def move_up(self):
         """Move the selected cell up."""
         row, col = self.selected_cell.coords
         self.move((row - 1, col))
 
-    def move_down(self) -> None:
+    def move_down(self):
         """Move the selected cell down."""
         row, col = self.selected_cell.coords
         self.move((row + 1, col))
 
-    def move_left(self) -> None:
+    def move_left(self):
         """Move the selected cell left."""
         row, col = self.selected_cell.coords
         self.move((row, col - 1))
 
-    def move_right(self) -> None:
+    def move_right(self):
         """Move the selected cell right."""
         row, col = self.selected_cell.coords
         self.move((row, col + 1))
 
-    def set_value(self, value: CellValue | None) -> None:
+    def set_value(self, value):
         """Sets the value of the selected cell."""
         if self.selected_cell.is_fixed or self.is_completed:
             return
@@ -294,7 +265,7 @@ class Board(Canvas):
 
         self.draw()
 
-    def toggle_candidate(self, candidate: CellValue) -> None:
+    def toggle_candidate(self, candidate):
         """Toggles a candidate of the selected cell."""
         if self.selected_cell.is_fixed or self.is_completed:
             return
@@ -304,7 +275,7 @@ class Board(Canvas):
 
         self.draw()
 
-    def undo(self) -> None:
+    def undo(self):
         """Undoes a move."""
         if not self.history or self.is_completed:
             return
@@ -316,7 +287,7 @@ class Board(Canvas):
 
         self.draw()
 
-    def hint(self) -> None:
+    def hint(self):
         """Hints the selected cell."""
         if self.selected_cell.is_fixed or self.is_completed:
             return
@@ -332,7 +303,7 @@ class Board(Canvas):
 
         self.draw()
 
-    def draw(self) -> None:
+    def draw(self):
         self.delete("all")
 
         self.draw_cells()
@@ -341,7 +312,7 @@ class Board(Canvas):
         if self.is_completed:
             self.draw_completed()
 
-    def draw_grid(self) -> None:
+    def draw_grid(self):
         # Draw the rows
         for i in range(1, 9):
             colour, width = (BLACK, 2) if i % 3 == 0 else (GREY, 1)
@@ -364,7 +335,7 @@ class Board(Canvas):
 
             self.create_line(x0, y0, x1, y1, fill=colour, width=width)
 
-    def draw_cells(self) -> None:
+    def draw_cells(self):
         selected_cell = self.selected_cell
         invalid_cells = self.grid.invalid_cells
 
@@ -422,7 +393,7 @@ class Board(Canvas):
                         font=(FONT_FAMILY, 10),
                     )
 
-    def draw_completed(self) -> None:
+    def draw_completed(self):
         x0 = CELL_SIZE * 2
         y0 = CELL_SIZE * 2
         x1 = CELL_SIZE * 7
@@ -437,7 +408,7 @@ class Board(Canvas):
 
 
 class WhiteBlueButton(Button):
-    def __init__(self, master: Misc, text: str, font_size: int) -> None:
+    def __init__(self, master, text, font_size):
         super().__init__(
             master,
             text=text,
@@ -451,7 +422,7 @@ class WhiteBlueButton(Button):
 
 
 class BlueWhiteButton(Button):
-    def __init__(self, master: Misc, text: str, font_size: int) -> None:
+    def __init__(self, master, text, font_size):
         super().__init__(
             master,
             text=text,
@@ -465,7 +436,7 @@ class BlueWhiteButton(Button):
 
 
 class IconButton(WhiteBlueButton):
-    def __init__(self, master: Misc, text: str, icon: str) -> None:
+    def __init__(self, master, text, icon):
         super().__init__(master, text=text, font_size=10)
 
         self.icon = PhotoImage(file=(ICON_PATH / icon).with_suffix(".png"))
@@ -473,7 +444,7 @@ class IconButton(WhiteBlueButton):
 
 
 class ControlMenu(Frame):
-    def __init__(self, master: Misc) -> None:
+    def __init__(self, master):
         super().__init__(master, background=WHITE)
 
         for i in range(2):
@@ -505,10 +476,10 @@ class ControlMenu(Frame):
 
 
 class NumberPad(Frame):
-    def __init__(self, master: Misc) -> None:
+    def __init__(self, master):
         super().__init__(master, background=WHITE)
 
-        self.buttons: list[Button] = []
+        self.buttons = []
 
         for i in range(3):
             self.rowconfigure(i, weight=1)
@@ -531,10 +502,10 @@ class NumberPad(Frame):
 
 
 class NewGameDialog(Toplevel):
-    def __init__(self, master: Tk) -> None:
+    def __init__(self, master):
         super().__init__(master, background=WHITE, padx=PADDING, pady=PADDING)
 
-        self.difficulty: Difficulty | None = None
+        self.difficulty = None
 
         self.title("New Game")
         self.geometry("300x360")
@@ -559,17 +530,17 @@ class NewGameDialog(Toplevel):
         self.grab_set()
         self.wait_window()
 
-    def set_difficulty(self, difficulty: Difficulty) -> None:
+    def set_difficulty(self, difficulty):
         self.difficulty = difficulty
         self.dismiss()
 
-    def dismiss(self) -> None:
+    def dismiss(self):
         self.grab_release()
         self.destroy()
 
 
 class App(Frame):
-    def __init__(self, master: Tk) -> None:
+    def __init__(self, master):
         super().__init__(master, background=WHITE)
 
         self.pack(fill=BOTH, expand=True)
@@ -601,27 +572,27 @@ class App(Frame):
         self.control_menu.erase_button.configure(command=handle_erase_button_pressed)
 
         for i, button in enumerate(self.number_pad.buttons, 1):
-            handle_button_pressed = partial(self.update_board, i)  # type: ignore
+            handle_button_pressed = partial(self.update_board, i)
             button.configure(command=handle_button_pressed)
 
         self.is_notes_entry_mode = False
         self.start(Difficulty.MEDIUM)
 
-    def start(self, difficulty: Difficulty | None = None) -> None:
+    def start(self, difficulty=None):
         """Stars a new game with a given difficulty."""
         if difficulty is None:
-            dialog = NewGameDialog(self.master)  # type: ignore
+            dialog = NewGameDialog(self.master)
             difficulty = dialog.difficulty
 
         if difficulty is None:
             return
 
         title = f"Sudoku ({DIFFICULTY_NAME_MAPPING[difficulty]})"
-        self.master.title(title)  # type: ignore
+        self.master.title(title)
 
         self.board.start(difficulty)
 
-    def toggle_notes_entry_mode(self) -> None:
+    def toggle_notes_entry_mode(self):
         """Toggles the notes entry mode."""
         self.is_notes_entry_mode = not self.is_notes_entry_mode
 
@@ -635,20 +606,23 @@ class App(Frame):
             activebackground=active_colour,
         )
 
-    def update_board(self, value: CellValue | None) -> None:
+    def update_board(self, value):
         if self.is_notes_entry_mode and value is not None:
             self.board.toggle_candidate(value)
         else:
             self.board.set_value(value)
 
-    def handle_cell_clicked(self, event: Event) -> None:
+    def handle_cell_clicked(self, event):
         if 0 <= event.x <= WIDTH and 0 <= event.y <= HEIGHT:
             row, col = event.y // CELL_SIZE, event.x // CELL_SIZE
             self.board.move((row, col))
 
-    def handle_key_pressed(self, event: Event) -> None:
-        if event.char.isdigit() and 1 <= (value := int(event.char)) <= 9:
-            self.update_board(value)  # type: ignore
+    def handle_key_pressed(self, event):
+        if event.char.isdigit():
+            value = int(event.char)
+            if 1 <= value <= 9:
+                self.update_board(value)
+
         elif event.keysym in CLEAR_KEYS:
             self.update_board(None)
         elif event.keysym in UP_KEYS:
