@@ -299,7 +299,14 @@ class Board(Canvas):
         self.grid[coords] = cell
 
         # Remove all cells that have the same coords from history
-        self.history = [cell for cell in self.history if cell.coords != coords]
+        history = self.history.copy()
+
+        self.history = []
+        for cell in history:
+            if cell.coords == coords:
+                continue
+
+            self.history.append(cell)
 
         self.draw()
 
