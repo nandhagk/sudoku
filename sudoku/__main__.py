@@ -561,7 +561,7 @@ class App(Frame):
         self.start(Difficulty.MEDIUM)
 
     def start(self, difficulty=None):
-        """Stars a new game with a given difficulty."""
+        """Starts a new game with a given difficulty."""
         if difficulty is None:
             dialog = NewGameDialog(self.master)
             difficulty = dialog.difficulty
