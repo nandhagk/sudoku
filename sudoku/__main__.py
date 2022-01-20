@@ -570,7 +570,7 @@ class App(Frame):
             return
 
         title = f"Sudoku ({DIFFICULTY_NAME_MAPPING[difficulty]})"
-        self.master.title(title)
+        self.master.title(title)  # type: ignore
 
         self.board.start(difficulty)
 
