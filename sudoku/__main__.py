@@ -147,18 +147,19 @@ def get_puzzle_and_solution(difficulty):
 
 def convert_str_to_grid(s):
     """Converts a string to a grid of cells."""
-    return [
-        [
-            Cell(
-                row=i,
-                col=j,
-                value=value if (value := int(s[i * 9 + j])) else None,
-                is_fixed=bool(value),
-            )
-            for j in range(9)
-        ]
-        for i in range(9)
-    ]
+    grid = []
+
+    for i in range(9):
+        row = []
+
+        for j in range(9):
+            value = int(s[i * 9 + j]) or None
+            cell = Cell(row=i, col=j, value=value, is_fixed=bool(value))
+            row.append(cell)
+
+        grid.append(row)
+
+    return grid
 
 
 class Board(Canvas):
@@ -282,7 +283,11 @@ class Board(Canvas):
         self.grid[row][col] = cell
 
         # Remove all cells that have the same coords from history
-        self.history = [c for c in self.history if c.coords != cell.coords]
+        history, self.history = self.history.copy(), []
+        for c in history:
+            if c.coords != cell.coords:
+                self.history.append(c)
+
         self.draw()
 
     def draw(self):
@@ -600,8 +605,11 @@ class App(Frame):
             self.board.move(row, col)
 
     def handle_key_pressed(self, event):
-        if event.char.isdigit() and 1 <= (value := int(event.char)) <= 9:
-            self.update_board(value)
+        if event.char.isdigit():
+            value = int(event.char)
+            if 1 <= value <= 9:
+                self.update_board(value)
+
         elif event.keysym in CLEAR_KEYS:
             self.update_board(None)
         elif event.keysym in UP_KEYS:
