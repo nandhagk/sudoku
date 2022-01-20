@@ -191,7 +191,6 @@ class Board(Canvas):
         """Checks if the puzzle is completed."""
         return self.grid == self.solution
 
-    @property
     def invalid_cells(self):
         """
         Cells that are invalid.
@@ -320,7 +319,7 @@ class Board(Canvas):
 
     def draw_cells(self):
         selected_cell = self.selected_cell
-        invalid_cells = self.invalid_cells
+        invalid_cells = self.invalid_cells()
 
         for cell in chain.from_iterable(self.grid):
             x0 = cell.col * CELL_SIZE
