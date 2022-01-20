@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import csv
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from copy import deepcopy
 from enum import Enum, auto
 from functools import partial
+from itertools import chain
 from pathlib import Path
 from random import choice
 from tkinter import (
@@ -155,65 +156,6 @@ class Cell:
         )
 
 
-class Grid:
-    def __init__(self, cells: list[Cell]) -> None:
-        assert len(cells) == 81
-        assert all([cell.coords == (i // 9, i % 9) for i, cell in enumerate(cells)])
-
-        self._cells = cells
-
-    def __eq__(self, other: Grid) -> bool:
-        return self._cells == other._cells
-
-    def __iter__(self) -> Iterator[Cell]:
-        return iter(self._cells)
-
-    def __getitem__(self, coords: tuple[int, int]) -> Cell:
-        row, col = coords
-        return self._cells[row * 9 + col]
-
-    def __setitem__(self, coords: tuple[int, int], cell: Cell) -> None:
-        assert coords == cell.coords
-
-        row, col = coords
-        self._cells[row * 9 + col] = cell
-
-    @property
-    def invalid_cells(self) -> set[Cell]:
-        """
-        Cells that are invalid.
-
-        Cells that are in the same row, column or subgrid that have the same value.
-        """
-        invalid_cells = set()
-
-        for cell in self:
-            if cell.value is None or cell in invalid_cells:
-                continue
-
-            for other in self:
-                if cell.is_neighbour(other) and cell.value == other.value:
-                    invalid_cells.add(cell)
-                    invalid_cells.add(other)
-
-        return invalid_cells
-
-    @classmethod
-    def from_str(cls, s: str) -> Grid:
-        """Creates a new grid from a string."""
-        cells = [
-            Cell(
-                row=i // 9,
-                col=i % 9,
-                value=value if (value := int(ch)) else None,  # type: ignore
-                is_fixed=bool(value),
-            )
-            for i, ch in enumerate(s)
-        ]
-
-        return cls(cells)
-
-
 def get_puzzle_and_solution(difficulty: Difficulty) -> tuple[str, str]:
     """Gets a random puzzle and its corresponding solution for a given difficulty."""
     csv_path = (DATA_PATH / DIFFICULTY_FILE_MAPPING[difficulty]).with_suffix(".csv")
@@ -222,6 +164,24 @@ def get_puzzle_and_solution(difficulty: Difficulty) -> tuple[str, str]:
         puzzle, solution = choice(tuple(reader))
 
     return puzzle, solution
+
+
+def convert_str_to_grid(s: str) -> list[list[Cell]]:
+    """Converts a string to a grid of cells."""
+    assert len(s) == 81
+
+    return [
+        [
+            Cell(
+                row=i,
+                col=j,
+                value=value if (value := int(s[i * 9 + j])) else None,  # type: ignore
+                is_fixed=bool(value),
+            )
+            for j in range(9)
+        ]
+        for i in range(9)
+    ]
 
 
 class Board(Canvas):
@@ -241,11 +201,11 @@ class Board(Canvas):
         """Starts a new game with a given difficulty."""
         puzzle, solution = get_puzzle_and_solution(difficulty)
 
-        self.grid = Grid.from_str(puzzle)
-        self.solution = Grid.from_str(solution)
+        self.grid = convert_str_to_grid(puzzle)
+        self.solution = convert_str_to_grid(solution)
 
         self.history.clear()
-        self.selected_cell = self.grid[(0, 0)]
+        self.selected_cell = self.grid[0][0]
 
         self.draw()
 
@@ -254,35 +214,53 @@ class Board(Canvas):
         """Checks if the puzzle is completed."""
         return self.grid == self.solution
 
-    def move(self, coords: tuple[int, int]) -> None:
+    @property
+    def invalid_cells(self) -> set[Cell]:
+        """
+        Cells that are invalid.
+
+        Cells that are in the same row, column or subgrid that have the same value.
+        """
+        invalid_cells = set()
+
+        for cell in chain.from_iterable(self.grid):
+            if cell.value is None or cell in invalid_cells:
+                continue
+
+            for other in chain.from_iterable(self.grid):
+                if cell.is_neighbour(other) and cell.value == other.value:
+                    invalid_cells.add(cell)
+                    invalid_cells.add(other)
+
+        return invalid_cells
+
+    def move(self, row: int, col: int) -> None:
         """Moves the selected cell to the given coordinates."""
         if self.is_completed:
             return
 
-        row, col = coords
-        self.selected_cell = self.grid[(row % 9, col % 9)]
-
+        self.selected_cell = self.grid[row % 9][col % 9]
         self.draw()
 
     def move_up(self) -> None:
         """Move the selected cell up."""
         row, col = self.selected_cell.coords
-        self.move((row - 1, col))
+        self.move(row - 1, col)
 
     def move_down(self) -> None:
         """Move the selected cell down."""
         row, col = self.selected_cell.coords
-        self.move((row + 1, col))
+        self.move(row + 1, col)
 
     def move_left(self) -> None:
         """Move the selected cell left."""
         row, col = self.selected_cell.coords
-        self.move((row, col - 1))
+        self.move(row, col - 1)
 
     def move_right(self) -> None:
         """Move the selected cell right."""
         row, col = self.selected_cell.coords
-        self.move((row, col + 1))
+        self.move(row, col + 1)
 
     def set_value(self, value: CellValue | None) -> None:
         """Sets the value of the selected cell."""
@@ -312,7 +290,7 @@ class Board(Canvas):
         cell = self.history.pop()
 
         self.selected_cell = cell
-        self.grid[cell.coords] = cell
+        self.grid[cell.row][cell.col] = cell
 
         self.draw()
 
@@ -321,15 +299,14 @@ class Board(Canvas):
         if self.selected_cell.is_fixed or self.is_completed:
             return
 
-        coords = self.selected_cell.coords
-        cell = self.solution[coords]
+        row, col = self.selected_cell.coords
+        cell = self.solution[row][col]
 
         self.selected_cell = cell
-        self.grid[coords] = cell
+        self.grid[row][col] = cell
 
         # Remove all cells that have the same coords from history
-        self.history = [cell for cell in self.history if cell.coords != coords]
-
+        self.history = [c for c in self.history if c.coords != cell.coords]
         self.draw()
 
     def draw(self) -> None:
@@ -366,9 +343,9 @@ class Board(Canvas):
 
     def draw_cells(self) -> None:
         selected_cell = self.selected_cell
-        invalid_cells = self.grid.invalid_cells
+        invalid_cells = self.invalid_cells
 
-        for cell in self.grid:
+        for cell in chain.from_iterable(self.grid):
             x0 = cell.col * CELL_SIZE
             y0 = cell.row * CELL_SIZE
             x1 = x0 + CELL_SIZE
@@ -644,7 +621,7 @@ class App(Frame):
     def handle_cell_clicked(self, event: Event) -> None:
         if 0 <= event.x <= WIDTH and 0 <= event.y <= HEIGHT:
             row, col = event.y // CELL_SIZE, event.x // CELL_SIZE
-            self.board.move((row, col))
+            self.board.move(row, col)
 
     def handle_key_pressed(self, event: Event) -> None:
         if event.char.isdigit() and 1 <= (value := int(event.char)) <= 9:
