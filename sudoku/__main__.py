@@ -29,7 +29,7 @@ class Difficulty(Enum):
     SUPER_HARD = auto()
 
 
-DIFFICULTY_FILE_MAPPING: dict[Difficulty, str] = {
+DIFFICULTY_FILE_MAPPING = {
     Difficulty.SUPER_EASY: "super_easy",
     Difficulty.EASY: "easy",
     Difficulty.MEDIUM: "medium",
@@ -37,7 +37,7 @@ DIFFICULTY_FILE_MAPPING: dict[Difficulty, str] = {
     Difficulty.SUPER_HARD: "super_hard",
 }
 
-DIFFICULTY_NAME_MAPPING: dict[Difficulty, str] = {
+DIFFICULTY_NAME_MAPPING = {
     Difficulty.SUPER_EASY: "Super Easy",
     Difficulty.EASY: "Easy",
     Difficulty.MEDIUM: "Medium",
