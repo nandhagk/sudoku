@@ -102,10 +102,10 @@ class Cell:
         is_fixed: bool,
         candidates: Iterable[CellValue] | None = None,
     ) -> None:
-        self.row: int = row
-        self.col: int = col
-        self.value: CellValue | None = value
-        self.is_fixed: bool = is_fixed
+        self.row = row
+        self.col = col
+        self.value = value
+        self.is_fixed = is_fixed
 
         self.candidates: set[CellValue]
         if candidates is None:
