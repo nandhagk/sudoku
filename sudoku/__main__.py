@@ -583,10 +583,10 @@ class App(Frame):
         """Toggles the notes entry mode."""
         self.is_notes_entry_mode = not self.is_notes_entry_mode
 
-        colour = LIGHT_RED if self.is_notes_entry_mode else WHITE_BLUE
-        active_colour = (
-            ACTIVE_LIGHT_RED if self.is_notes_entry_mode else ACTIVE_WHITE_BLUE
-        )
+        if self.is_notes_entry_mode:
+            colour, active_colour = LIGHT_RED, ACTIVE_LIGHT_RED
+        else:
+            colour, active_colour = WHITE_BLUE, ACTIVE_WHITE_BLUE
 
         self.control_menu.notes_button.configure(
             background=colour,
