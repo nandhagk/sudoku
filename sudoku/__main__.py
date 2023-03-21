@@ -1,4 +1,5 @@
 import csv
+from collections.abc import Iterable  # noqa: TCH003
 from copy import deepcopy
 from enum import Enum, auto
 from functools import partial
@@ -21,10 +22,7 @@ from tkinter import (
     Toplevel,
     X,
 )
-from typing import TYPE_CHECKING, Literal, Self, cast
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
+from typing import Literal, Self, cast
 
 
 class Difficulty(Enum):
