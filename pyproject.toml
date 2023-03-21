@@ -1,26 +1,20 @@
 [tool.poetry]
 name = "sudoku"
 version = "0.1.0"
-description = "Sudoku GUI"
+description = "A Sudoku GUI"
 license = "MIT"
 authors = ["nandhagk <nandhagopi@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
-[tool.poetry.dev-dependencies]
-flake8 = "^4.0.0"
-flake8-annotations = "^2.7.0"
-flake8-bugbear = "^22.0.0"
-flake8-docstrings = "^1.6.0"
-flake8-isort = "^4.1.1"
-flake8-string-format = "^0.3.0"
-flake8-tidy-imports = "^4.6.0"
-flake8-todo = "^0.7"
-pep8-naming = "^0.12.0"
-pre-commit = "^2.15.0"
-shed = "^0.9.0"
+[tool.poetry.group.dev.dependencies]
 taskipy = "^1.9.0"
+
+[tool.poetry.group.lint.dependencies]
+ruff = "^0.0.257"
+shed = "^2023.3.1"
+pre-commit = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -34,6 +28,32 @@ precommit = "pre-commit install"
 [tool.isort]
 profile = "black"
 case_sensitive = true
+
+[tool.ruff]
+ignore = [
+  # Missing Docstrings
+  "D100",
+  "D101",
+  "D102",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+  # Docstring Whitespace
+  "D203",
+  "D212",
+  "D214",
+  "D215",
+  # Type Annotations
+  "ANN002",
+  "ANN003",
+  "ANN101",
+  "ANN102",
+  # Magic constants
+  "PLR2004"
+]
+select = ["ALL"]
+target-version = "py311"
 
 [tool.pyright]
 include = ["sudoku"]
