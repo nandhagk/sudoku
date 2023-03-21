@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import csv
 from copy import deepcopy
 from enum import Enum, auto
@@ -23,7 +21,7 @@ from tkinter import (
     Toplevel,
     X,
 )
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal, Self, cast
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -116,7 +114,7 @@ class Cell:
         else:
             self.candidates = set(candidates)
 
-    def __eq__(self, other: Cell) -> bool:
+    def __eq__(self, other: Self) -> bool:
         return self.value == other.value and self.coords == other.coords
 
     def __hash__(self) -> int:
@@ -137,13 +135,13 @@ class Cell:
         else:
             self.candidates.add(candidate)
 
-    def is_sharing_subgrid(self, other: Cell) -> bool:
+    def is_sharing_subgrid(self, other: Self) -> bool:
         if self == other:
             return False
 
         return self.row // 3 == other.row // 3 and self.col // 3 == other.col // 3
 
-    def is_neighbour(self, other: Cell) -> bool:
+    def is_neighbour(self, other: Self) -> bool:
         return self != other and (
             self.row == other.row
             or self.col == other.col
