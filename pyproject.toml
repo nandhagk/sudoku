@@ -12,7 +12,7 @@ python = "^3.11"
 taskipy = "^1.9.0"
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.0.278"
+ruff = "^0.4.0"
 shed = "^2024.0.0"
 pre-commit = "^3.0.0"
 
